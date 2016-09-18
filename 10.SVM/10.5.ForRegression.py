@@ -1,0 +1,65 @@
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
+
+import numpy as np
+from sklearn import svm
+import matplotlib.pyplot as plt
+
+
+if __name__ == "__main__":
+    N = 100
+    np.random.seed(0)
+    x = np.sort(np.random.uniform(0, 6, N), axis=0)
+    y = 2 * np.sin(x) + 0.1 * np.random.randn(N)   # noise will not affect SVM , good resistance to overfitting
+    x = x.reshape(-1, 1)
+    print 'x =\n', x
+    print 'y =\n', y
+
+    print 'SVR - RBF'
+    svr_rbf = svm.SVR(kernel='rbf', gamma=0.01, C=100)
+    svr_rbf.fit(x, y)
+    print 'SVR - Linear'
+    svr_linear = svm.SVR(kernel='linear', C=100)
+    svr_linear.fit(x, y)
+    print 'SVR - Polynomial'
+    svr_poly = svm.SVR(kernel='poly', degree=3, C=100)
+    svr_poly.fit(x, y)
+    print 'Fit OK.'
+
+    x_test = np.linspace(x.min(), x.max(), 100).reshape(-1, 1)
+    y_test = 2 * np.sin(x_test)
+    y_rbf = svr_rbf.predict(x_test)
+    y_linear = svr_linear.predict(x_test)
+    y_poly = svr_poly.predict(x_test)
+
+    error_rbf = ((y_rbf - y_test) ** 2) / 100
+    error_linear = ((y_linear - y_test) ** 2) / 100
+    error_poly = ((y_poly - y_test) ** 2) / 100
+
+    error1 = 0
+    error2 = 0
+    error3 = 0
+
+    for error in error_linear:
+        error1 += float(error)
+
+    for error in error_poly:
+        error2 += float(error)
+
+    for error in error_rbf:
+        error3 += float(error)
+
+    print 'Error of RBF: ' + str(error3) 
+    print 'Error of Linear: ' + str(error1) 
+    print 'Error of Poly: ' + str(error2) 
+
+    plt.figure(figsize=(9, 8))
+    plt.plot(x_test, y_rbf, 'r-', linewidth=2, label='RBF Kernel')
+    plt.plot(x_test, y_linear, 'g-', linewidth=2, label='Linear Kernel')
+    plt.plot(x_test, y_poly, 'b-', linewidth=2, label='Polynomial Kernel')
+    plt.plot(x, y, 'mo', markersize=6)
+    plt.scatter(x[svr_rbf.support_], y[svr_rbf.support_], s=130, c='r', marker='*', label='RBF Support Vectors')
+    plt.xlim((0,6))
+    plt.legend(loc='upper right')
+    plt.grid(True)
+    plt.show()
